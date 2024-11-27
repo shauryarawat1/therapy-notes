@@ -11,11 +11,17 @@ export default function NoteInput() {
     observations: ''
   })
 
+  /* Adding response display */
+
+  const [result, setResult] = useState("")
+  const [loading, setLoading] = useState(false)
+
   /* Adding the API call to the note input component */
 
   const handleSubmit = async (e: React.FormEvent) => {
     /* Preventing default form behavior (page reload) */
     e.preventDefault();
+    setLoading(true);
 
     /* Sending a POST request */
     try {
@@ -27,11 +33,13 @@ export default function NoteInput() {
 
       /* Handling response */
       const data = await response.json();
-      console.log(data);
+      setResult(data.professional_note);
 
     } catch(error) {
       console.error(error);
     }
+
+    setLoading(false);
   };
 
 
@@ -79,6 +87,15 @@ export default function NoteInput() {
           Generate Notes
         </button>
       </form>
+
+      {loading ? (        /*Ternary operator, if loading is true then it renders the result as a professional note*/
+        <p>Processing...</p>
+      ): result && (
+        <div className = "mt-4 p-4 border rounded">
+          <h3 className = "font-bold mb-2">Professional Note:</h3>
+          <p>{result}</p>
+        </div>
+      )}
     </div>
   )
 }
