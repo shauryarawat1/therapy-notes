@@ -38,6 +38,26 @@ export default function NoteInput() {
   }
  }
 
+ const regenerateSection = async (section: string) => {
+  setLoading(true);
+  try {
+    const response = await fetch('http://localhost:8000/api/notes/regenerate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        section: section,
+        original_note: editableNote,
+        session: session
+      })
+    });
+    const data = await response.json();
+    setEditableNote(data.updated_note);
+  } catch (error) {
+    setError("Failed to regenerate section");
+  }
+  setLoading(false);
+};
+
  const handleSubmit = async (e: React.FormEvent) => {
    e.preventDefault();
    setError("");
@@ -118,6 +138,19 @@ export default function NoteInput() {
              onChange={(e) => setEditableNote(e.target.value)}
              placeholder="Edit generated notes here..."
            />
+
+           <div className = "flex gap-2 mt-2">
+            <button
+              onClick={() => regenerateSection('subjective')}
+              className = "bg-purple-500 text-white p-2 rounded text-sm">Regenerate Subjective
+            </button>
+
+            <button
+              onClick = {() => regenerateSection("objective")}
+              className = "bg-purple-500 text-white p-2 rounded text-sm">Regenerate Objective
+            </button>
+           </div>
+
            <button 
              className="mt-2 bg-green-500 text-white p-2 rounded"
              onClick={handleSave}

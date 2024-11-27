@@ -35,6 +35,12 @@ class SavedNote(BaseModel):
     session_type: str
     duration: int
     
+class RegenerateRequest(BaseModel):
+    section: str
+    original_note: str
+    session: dict
+    
+    
 @app.post("/api/notes/save")
 async def save_note(note: SavedNote):
     try:
@@ -46,6 +52,39 @@ async def save_note(note: SavedNote):
         
     except Exception as e:
         raise HTTPException(status_code = 500, detail = str(e))
+    
+    
+    
+@app.post("/api/notes/regenerate")
+async def regenerate_section(request: RegenerateRequest):
+    try:
+        prompt = f"""Regenerate only the {request.section.upper()} section of this SOAP note, keeping other sections unchanged:
+
+        Original note:
+        {request.original_note}
+
+        Session details:
+        Duration: {request.session['duration']} minutes
+        Type: {request.session['type']}
+        Observations: {request.session['observations']}
+        
+        Generate only a new {request.section.upper()} section maintaining clinical writing style."""
+        
+        response = anthropic_key.messages.create(
+            model="claude-3-opus-20240229",
+            max_tokens=1000,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        
+        return {
+            "status": "success",
+            "updated_note": response.content[0].text
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
 
 '''Route for root URL'''
 @app.get("/")
