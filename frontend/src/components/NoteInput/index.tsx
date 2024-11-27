@@ -15,12 +15,20 @@ export default function NoteInput() {
 
   const [result, setResult] = useState("")
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   /* Adding the API call to the note input component */
 
   const handleSubmit = async (e: React.FormEvent) => {
     /* Preventing default form behavior (page reload) */
     e.preventDefault();
+    setError("");
+
+    /* Error handling */
+    if (!session.duration || !session.type || !session.observations) {
+      setError("All fields required");
+      return;
+    }
     setLoading(true);
 
     /* Sending a POST request */
@@ -36,7 +44,7 @@ export default function NoteInput() {
       setResult(data.professional_note);
 
     } catch(error) {
-      console.error(error);
+      setError("Failed to process notes");
     }
 
     setLoading(false);
@@ -48,6 +56,7 @@ export default function NoteInput() {
 
     <div className="w-full max-w-2xl">
       <h2 className="text-2xl font-bold mb-4">Please add the session notes</h2>
+      {error && <div className = "text-red-500 mb-4">{error}</div>} 
       <form className="space-y-4" onSubmit = {handleSubmit}>
         {/* Session parameters */}
         <div className="grid grid-cols-2 gap-4">
