@@ -47,9 +47,20 @@ async def process_notes(note: SessionNote):
     # Creates prompt for Anthropic API and returns the response
     try:
         prompt = f"""Convert the therapy session notes into professional notes:
+        Session Info:
+        
         Duration: {note.duration} minutes
         Type: {note.type}
-        Observations: {note.observations}"""
+        Observations: {note.observations}
+        
+        Please format as a clinical SOAP note with clear sections:
+        - Subjective (S): Client's symptoms, concerns, and reported experiences
+        - Objective (O): Observable behaviors and clinical observations
+        - Assessment (A): Clinical assessment and analysis
+        - Plan (P): Treatment plan and next steps
+        
+        Use double line breaks between sections for clarity.
+        """
         
         response = anthropic_key.messages.create(
             model = "claude-3-opus-20240229",
