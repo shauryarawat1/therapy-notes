@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from anthropic import Anthropic
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 '''Adding CORS for handling servers running in different terminals'''
 
@@ -26,6 +27,25 @@ app.add_middleware(
     allow_methods = ["*"],
     allow_headers = ["*"],
 )
+
+# Saves the note
+class SavedNote(BaseModel):
+    session_date: datetime
+    note_content: str
+    session_type: str
+    duration: int
+    
+@app.post("/api/notes/save")
+async def save_note(note: SavedNote):
+    try:
+        return {
+            "status": "success",
+            "message": "Note saved successfully",
+            "saved_at": datetime.now()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code = 500, detail = str(e))
 
 '''Route for root URL'''
 @app.get("/")

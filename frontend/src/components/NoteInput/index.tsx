@@ -12,6 +12,31 @@ export default function NoteInput() {
  const [loading, setLoading] = useState(false)
  const [error, setError] = useState("")
  const [editableNote, setEditableNote] = useState("")
+ const [saveStatus, setSaveStatus] = useState("")
+
+ const handleSave = async() => {
+  setSaveStatus("Saving...");
+
+  try {
+    const response = await fetch('http://localhost:8000/api/notes/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_date: new Date(),
+        note_content: editableNote,
+        session_type: session.type,
+        duration: parseInt(session.duration)
+      })
+    });
+
+    const data = await response.json();
+
+    setSaveStatus("Saved successfully!")
+  } catch(error) {
+    setSaveStatus("Error saving note");
+    console.error(error);
+  }
+ }
 
  const handleSubmit = async (e: React.FormEvent) => {
    e.preventDefault();
@@ -95,10 +120,11 @@ export default function NoteInput() {
            />
            <button 
              className="mt-2 bg-green-500 text-white p-2 rounded"
-             onClick={() => setResult(editableNote)}
+             onClick={handleSave}
            >
              Save Changes
            </button>
+           {saveStatus && <p className = "mt-2 text-sm">{saveStatus}</p>}
          </div>
        </>
      )}
