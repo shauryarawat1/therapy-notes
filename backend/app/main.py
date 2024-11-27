@@ -35,12 +35,7 @@ class SavedNote(BaseModel):
     session_type: str
     duration: int
     
-class RegenerateRequest(BaseModel):
-    section: str
-    original_note: str
-    session: dict
-    
-    
+ 
 @app.post("/api/notes/save")
 async def save_note(note: SavedNote):
     try:
@@ -53,7 +48,10 @@ async def save_note(note: SavedNote):
     except Exception as e:
         raise HTTPException(status_code = 500, detail = str(e))
     
-    
+class RegenerateRequest(BaseModel):
+    section: str
+    original_note: str
+    session: dict
     
 @app.post("/api/notes/regenerate")
 async def regenerate_section(request: RegenerateRequest):
@@ -83,8 +81,7 @@ async def regenerate_section(request: RegenerateRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-    
+     
 
 '''Route for root URL'''
 @app.get("/")
@@ -96,6 +93,7 @@ class SessionNote(BaseModel):
     duration: int
     type: str
     observations: str
+    style: str
     
 '''Listens for POST requests'''
 @app.post("/api/notes")
@@ -105,18 +103,18 @@ async def process_notes(note: SessionNote):
     
     # Creates prompt for Anthropic API and returns the response
     try:
-        prompt = f"""Convert the therapy session notes into professional notes:
-        Session Info:
+        style_prompts = {
+            "detailed": "Format as a detailed SOAP note with comprehensive sections for Subjective, Objective, Assessment, and Plan.",
+            "brief": "Create a concise summary focusing on key points in a brief SOAP format.",
+            "narrative": "Write in a narrative style while maintaining clinical professionalism."
+        }
         
+        prompt = f"""Convert the therapy session notes using {style_prompts[note.style]}:
+        
+        Session Info:     
         Duration: {note.duration} minutes
         Type: {note.type}
         Observations: {note.observations}
-        
-        Please format as a clinical SOAP note with clear sections:
-        - Subjective (S): Client's symptoms, concerns, and reported experiences
-        - Objective (O): Observable behaviors and clinical observations
-        - Assessment (A): Clinical assessment and analysis
-        - Plan (P): Treatment plan and next steps
         
         Use double line breaks between sections for clarity.
         """

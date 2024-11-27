@@ -13,6 +13,7 @@ export default function NoteInput() {
  const [error, setError] = useState("")
  const [editableNote, setEditableNote] = useState("")
  const [saveStatus, setSaveStatus] = useState("")
+ const [noteStyle, setNoteStyle] = useState("detailed")
 
  const handleSave = async() => {
   setSaveStatus("Saving...");
@@ -72,8 +73,12 @@ export default function NoteInput() {
      const response = await fetch('http://localhost:8000/api/notes', {
        method: 'POST',
        headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify(session)
+       body: JSON.stringify({
+        ...session,
+        style: noteStyle
+       })       
      });
+     
      const data = await response.json();
      setResult(data.professional_note);
      setEditableNote(data.professional_note);
@@ -88,6 +93,17 @@ export default function NoteInput() {
    <div className="w-full max-w-2xl">
      <h2 className="text-2xl font-bold mb-4">Session Notes</h2>
      {error && <div className="text-red-500 mb-4">{error}</div>}
+
+     <select
+        className = "w-full p-2 rounded border"
+        value = {noteStyle}
+        onChange={(e) => setNoteStyle(e.target.value)}>
+          <option value="detailed">Detailed SOAP note</option>
+          <option value = "brief">Brief Summary</option>
+          <option value = "narrative">Narrative</option>
+        </select>
+
+
      <form onSubmit={handleSubmit} className="space-y-4">
        <div className="grid grid-cols-2 gap-4">
          <input 
