@@ -4,7 +4,22 @@ from pydantic import BaseModel
 from typing import Optional
 from fastapi import FastAPI, HTTPException
 
+'''Adding CORS for handling servers running in different terminals'''
+
+from fastapi.middleware.cors import CORSMiddleware
+
+
 app = FastAPI()
+
+origins = ["http://localhost:3000"]     # Accepting requests from frontend URL
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins = origins,
+    allow_credentials = True,
+    allow_methods = ["*"],
+    allow_headers = ["*"],
+)
 
 '''Route for root URL'''
 @app.get("/")

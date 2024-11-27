@@ -11,12 +11,36 @@ export default function NoteInput() {
     observations: ''
   })
 
+  /* Adding the API call to the note input component */
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    /* Preventing default form behavior (page reload) */
+    e.preventDefault();
+
+    /* Sending a POST request */
+    try {
+      const response = await fetch('http://localhost:8000/api/notes', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(session)
+      });
+
+      /* Handling response */
+      const data = await response.json();
+      console.log(data);
+
+    } catch(error) {
+      console.error(error);
+    }
+  };
+
+
   return (
     /* Sets max width and height */
 
     <div className="w-full max-w-2xl">
       <h2 className="text-2xl font-bold mb-4">Please add the session notes</h2>
-      <form className="space-y-4">
+      <form className="space-y-4" onSubmit = {handleSubmit}>
         {/* Session parameters */}
         <div className="grid grid-cols-2 gap-4">
           <input 
@@ -29,7 +53,7 @@ export default function NoteInput() {
           <select 
             className="p-2 rounded border"
             value={session.type}
-            /* Udates session state*/
+            /* Updates session state*/
             onChange={(e) => setSession({...session, type: e.target.value})}
           >
             <option value="">Select Type</option>
