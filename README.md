@@ -47,6 +47,11 @@ A full-stack application that helps therapists convert session observations into
 
 4. Frontend runs at http://localhost:3000
 
+## How to use the app
+- In one terminal, activate front end server by cd frontend -> npm run dev
+- In another terminal, activate backend server by activate virtual environment -> cd backend/app -> fastapi dev main.py
+- Access http://localhost:3000 for the interface
+
 ## Usage
 
 1. Enter session duration and type
