@@ -1,5 +1,4 @@
-'''Defines FastAPI endpoint to process session notes. Includes access to Anthropic API'''
-
+# Import necessary libraries
 from pydantic import BaseModel
 from typing import Optional
 from fastapi import FastAPI, HTTPException
@@ -8,54 +7,61 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 
-'''Adding CORS for handling servers running in different terminals'''
-
 from fastapi.middleware.cors import CORSMiddleware
 
-# Loads environment variables from .env
+# Load environment variables from .env file
 load_dotenv()
+
+# Create a FastAPI application
 app = FastAPI()
 
-anthropic_key = Anthropic(api_key = os.getenv('ANTHROPIC_API_KEY'))
+# Initialize the Anthropic API with the API key
+anthropic_key = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 
-origins = ["http://localhost:3000"]     # Accepting requests from frontend URL
+# Define the origins for CORS
+origins = ["http://localhost:3000"]
 
+# Add CORS middleware to the application, recommended by AI
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = origins,
-    allow_credentials = True,
-    allow_methods = ["*"],
-    allow_headers = ["*"],
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Saves the note
+# Define a Pydantic model for the saved note
 class SavedNote(BaseModel):
     session_date: datetime
     note_content: str
     session_type: str
     duration: int
-    
- 
+
+# Define a route to save a note
 @app.post("/api/notes/save")
 async def save_note(note: SavedNote):
     try:
+        # Save the note and return a success response
         return {
             "status": "success",
             "message": "Note saved successfully",
             "saved_at": datetime.now()
         }
-        
     except Exception as e:
-        raise HTTPException(status_code = 500, detail = str(e))
-    
+        # Raise an HTTP exception if there is an error
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Define a Pydantic model for the regenerate request
 class RegenerateRequest(BaseModel):
     section: str
     original_note: str
     session: dict
-    
+
+# Define a route to regenerate a section of a note, AI generated
 @app.post("/api/notes/regenerate")
 async def regenerate_section(request: RegenerateRequest):
     try:
+        # Create a prompt for the Anthropic API
         prompt = f"""Regenerate only the {request.section.upper()} section of this SOAP note, keeping other sections unchanged:
 
         Original note:
@@ -68,41 +74,39 @@ async def regenerate_section(request: RegenerateRequest):
         
         Generate only a new {request.section.upper()} section maintaining clinical writing style."""
         
+        # Send the prompt to the Anthropic API and get the response
         response = anthropic_key.messages.create(
             model="claude-3-opus-20240229",
             max_tokens=1000,
             messages=[{"role": "user", "content": prompt}]
         )
         
+        # Return the updated note
         return {
             "status": "success",
             "updated_note": response.content[0].text
         }
-        
     except Exception as e:
+        # Raise an HTTP exception if there is an error
         raise HTTPException(status_code=500, detail=str(e))
-     
 
-'''Route for root URL'''
+# Define a route for the root URL
 @app.get("/")
-
 async def read_root():
     return {"message": "Welcome!"}
 
+# Define a Pydantic model for the session note
 class SessionNote(BaseModel):
     duration: int
     type: str
     observations: str
     style: str
-    
-'''Listens for POST requests'''
-@app.post("/api/notes")
 
+# Define a route to process a session note
+@app.post("/api/notes")
 async def process_notes(note: SessionNote):
-    '''Request handling'''
-    
-    # Creates prompt for Anthropic API and returns the response
     try:
+        # Create a prompt for the Anthropic API based on the note style. AI generated prompt request
         style_prompts = {
             "detailed": "Format as a detailed SOAP note with comprehensive sections for Subjective, Objective, Assessment, and Plan.",
             "brief": "Create a concise summary focusing on key points in a brief SOAP format.",
@@ -119,17 +123,18 @@ async def process_notes(note: SessionNote):
         Use double line breaks between sections for clarity.
         """
         
+        # Send the prompt to the Anthropic API and get the response
         response = anthropic_key.messages.create(
-            model = "claude-3-opus-20240229",
-            max_tokens = 1000,
-            messages = [{"role": "user", "content": prompt}]
+            model="claude-3-opus-20240229",
+            max_tokens=1000,
+            messages=[{"role": "user", "content": prompt}]
         )
         
+        # Return the professional note
         return {
             "status": "success",
             "professional_note": response.content[0].text
         }
-        
     except Exception as e:
-        print(f"Error: {e}")
-        raise HTTPException(status_code = 500, detail = str(e))
+        # Raise an HTTP exception if there is an error
+        raise HTTPException(status_code=500, detail=str(e))
